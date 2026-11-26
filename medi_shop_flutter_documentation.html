@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medi Shop (Flutter Pharmacy App) — Architecture & Dev Documentation</title>
+  <style>
+    :root {
+      --primary: #0e7c7b;
+      --primary-dark: #0a5c5b;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--surface);
+      padding: 40px;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: var(--text);
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 0.98rem;
+      color: var(--text-muted);
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      color: var(--primary-dark);
+      margin-top: 36px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      color: var(--text);
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      color: var(--text);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-muted);
+    }
+
+    .pipeline-flow {
+      background: #e6f4f1;
+      border: 1px solid #99d5cf;
+      color: #0a5c5b;
+      padding: 16px;
+      border-radius: var(--radius);
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.02rem;
+      margin-bottom: 24px;
+    }
+
+    ol, ul {
+      margin-bottom: 20px;
+      padding-left: 24px;
+      color: var(--text-muted);
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    pre {
+      background-color: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: "Fira Code", Monaco, Consolas, "Courier New", monospace;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    code {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Monaco, Consolas, monospace;
+      font-size: 0.88em;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      vertical-align: middle;
+      margin-right: 6px;
+      border: 1px solid rgba(0,0,0,0.15);
+    }
+
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .checklist input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px;
+      }
+      .container {
+        padding: 20px;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Medi Shop (Flutter Pharmacy App) — Architecture &amp; Dev Documentation</h1>
+    <p class="subtitle">
+      Technical Design, BLoC State Pipeline, UI System &amp; Handover Guide for the <strong>Medi Shop</strong> Flutter Mobile Application.
+    </p>
+
+    <!-- 1. Executive Summary & Core Pipeline -->
+    <h2>1. Executive Summary &amp; Core App Pipeline</h2>
+    <div class="pipeline-flow">
+      UI Widgets (Screens) &rarr; PharmacyEvent &rarr; PharmacyBloc &rarr; MedicineRepository &rarr; MedicineService &rarr; PharmacyState
+    </div>
+    <p>
+      <strong>Medi Shop</strong> is a lightweight, clean-card-style online pharmacy application built with <strong>Flutter (Dart)</strong> and <strong>BLoC (<code>flutter_bloc</code>)</strong> state management. It is structured with a layered architecture so that local Dart sample data can be swapped for a real REST API or Firebase backend without changing any UI code.
+    </p>
+    <ol>
+      <li><strong>Catalog &amp; Discovery:</strong> Displays medicines in clean Material 3 cards with real-time keyword search and category filtering (<code>All</code>, <code>Fever &amp; Pain</code>, <code>Vitamins</code>, <code>Antibiotics</code>, <code>Allergy</code>).</li>
+      <li><strong>Medicine Details &amp; Rx Safety:</strong> Dedicated detail view showing unit packaging, live stock count, usage description, and a highlighted prescription (<code>Rx</code>) warning banner for controlled medicines.</li>
+      <li><strong>Cart &amp; Stock-Safe Checkout:</strong> Interactive shopping cart with quantity increment/decrement controls capped by available stock, automatic subtotal/total calculation, and instant stock deduction upon checkout.</li>
+      <li><strong>Dynamic Theming:</strong> One-tap Light Mode and Dark Mode switcher managed reactively through <code>PharmacyBloc</code> and Material 3 <code>ColorScheme</code>.</li>
+    </ol>
+
+    <!-- 2. BLoC Architecture & Sequence Alignment -->
+    <h2>2. BLoC Architecture &amp; Sequence Alignment</h2>
+    <p>
+      All business logic is decoupled from Flutter widgets. User interactions dispatch typed events to <code>PharmacyBloc</code>, which communicates with <code>MedicineRepository</code> and emits immutable <code>PharmacyState</code> snapshots:
+    </p>
+    <pre><code>[User Action] ──► (Flutter UI) ──► [PharmacyEvent] ──► (PharmacyBloc) ──► [MedicineRepository]
+                                                                                  │
+[UI Rebuild]  ◄── (BlocBuilder) ◄── [PharmacyState] ◄─────── (MedicineService) ◄──┘</code></pre>
+
+    <h3>Mapping Matrix: BLoC Events vs. UI States</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Event Class</th>
+          <th>UI Trigger</th>
+          <th>State Transition &amp; Side Effects</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>LoadMedicines</code></td>
+          <td>App startup (<code>main.dart</code>)</td>
+          <td>Emits <code>PharmacyStatus.loading</code> &rarr; fetches catalog &rarr; emits <code>loaded</code> or <code>error</code>.</td>
+        </tr>
+        <tr>
+          <td><code>SearchMedicines(query)</code></td>
+          <td>Search <code>TextField.onChanged</code></td>
+          <td>Filters <code>allMedicines</code> by name/category combined with active category chip.</td>
+        </tr>
+        <tr>
+          <td><code>SelectCategory(category)</code></td>
+          <td><code>ChoiceChip.onSelected</code></td>
+          <td>Updates <code>selectedCategory</code> and recalculates <code>filteredMedicines</code>.</td>
+        </tr>
+        <tr>
+          <td><code>AddToCart(medicine)</code></td>
+          <td>Card / Detail <code>Add</code> button</td>
+          <td>Adds item or increments quantity if <code>quantity &lt; medicine.stock</code>.</td>
+        </tr>
+        <tr>
+          <td><code>UpdateCartQuantity</code></td>
+          <td>Cart <code>+</code> / <code>-</code> icon buttons</td>
+          <td>Updates item count within <code>1..stock</code>; removes item if quantity reaches <code>0</code>.</td>
+        </tr>
+        <tr>
+          <td><code>CheckoutOrder</code></td>
+          <td>Cart <code>Place Order</code> button</td>
+          <td>Deducts purchased quantities from stock, clears cart, sets <code>orderSuccessMessage</code>.</td>
+        </tr>
+        <tr>
+          <td><code>ToggleTheme</code></td>
+          <td>AppBar Light/Dark icon button</td>
+          <td>Flips <code>isDarkMode</code> boolean, switching <code>MaterialApp.themeMode</code> immediately.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 3. User Flow Standard Specifications -->
+    <h2>3. User Flow &amp; Navigation Specifications</h2>
+    <p>
+      The application follows a streamlined 3-screen e-commerce flow optimized for clarity and fast task completion:
+    </p>
+
+    <pre><code>( Launch App: MediShopApp )
+            │
+            ▼
+    [ HomeScreen ] ◄─────────────────────────────────────────────┐
+      │   │   │                                                  │
+      │   │   └── (Tap Sun/Moon Icon) ──► Toggle Light/Dark Mode │
+      │   │                                                      │
+      │   ├── (Type Search / Tap Category Chip) ──► Filter List  │
+      │   │                                                      │
+      │   ├── (Tap MedicineCard) ──► [ MedicineDetailScreen ]    │
+      │   │                                  │                   │
+      │   │                            (Add to Cart)             │
+      │   │                                  │                   │
+      │   ▼                                  ▼                   │
+      └──────────────► (Tap Cart Badge Icon)                     │
+                                │                                │
+                                ▼                                │
+                         [ CartScreen ]                          │
+                                │                                │
+                       ◇ Is Cart Empty? ◇                        │
+                        /              \                         │
+                 (Yes) /                \ (No)                   │
+                      ▼                  ▼                       │
+             [ Empty State ]     (Adjust Qty / Review Total)     │
+                                         │                       │
+                                   (Place Order)                 │
+                                         │                       │
+                                         ▼                       │
+                         [ Deduct Stock &amp; Clear Cart ]           │
+                                         │                       │
+                                         ▼                       │
+                      ( Show Confirmation SnackBar &amp; Pop ) ──────┘</code></pre>
+
+    <!-- 4. Project Folder Structure -->
+    <h2>4. Project Folder Structure &amp; Module Breakdown</h2>
+    <p>
+      The codebase follows a clean feature-layered Flutter folder structure:
+    </p>
+    <pre><code>lib/
+├── constants/
+│   └── app_constants.dart         # Brand colors, categories, Light &amp; Dark ThemeData
+├── models/
+│   ├── medicine.dart              # Medicine entity (fromJson, toJson, copyWith)
+│   └── cart_item.dart             # CartItem entity with subtotal calculation
+├── services/
+│   └── medicine_service.dart      # Local Dart medicine data provider
+├── repositories/
+│   └── medicine_repository.dart   # Repository abstraction for BLoC
+├── logic/
+│   ├── pharmacy_event.dart        # All user &amp; system BLoC events
+│   ├── pharmacy_state.dart        # Immutable state, cart totals, theme flag
+│   └── pharmacy_bloc.dart         # Event handlers, filtering &amp; checkout logic
+├── ui/
+│   ├── widgets/
+│   │   └── medicine_card.dart     # Reusable clean card component with Rx badge
+│   └── screens/
+│       ├── home_screen.dart       # Search, category chips, theme toggle, catalog
+│       ├── medicine_detail_screen.dart # Full medicine info &amp; Rx warning banner
+│       └── cart_screen.dart       # Quantity controls, total bar, checkout CTA
+└── main.dart                      # App entry point, BlocProvider &amp; ThemeMode</code></pre>
+
+    <h3>Dependencies (<code>pubspec.yaml</code>)</h3>
+    <ul>
+      <li><code>flutter</code> (SDK) — Core UI framework with Material 3 enabled (<code>useMaterial3: true</code>).</li>
+      <li><code>flutter_bloc: ^8.1.6</code> — Predictable state management (<code>BlocProvider</code>, <code>BlocBuilder</code>, <code>BlocListener</code>).</li>
+    </ul>
+
+    <!-- 5. Design System & Theme Variables -->
+    <h2>5. Design System &amp; Theme Variables (Light &amp; Dark Mode)</h2>
+    <div class="pipeline-flow">
+      [ AppConstants Seed Color ] &rarr; [ Material 3 ColorScheme ] &rarr; [ Adaptive UI Components ]
+    </div>
+
+    <h3>Color Tokens</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Token / Role</th>
+          <th>Light Mode Value</th>
+          <th>Dark Mode Value</th>
+          <th>Flutter Usage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Brand Primary</strong></td>
+          <td><span class="swatch" style="background:#0E7C7B"></span><code>#0E7C7B</code></td>
+          <td><span class="swatch" style="background:#0E7C7B"></span>Seeded M3 Primary</td>
+          <td><code>colorScheme.primary</code></td>
+        </tr>
+        <tr>
+          <td><strong>Scaffold Background</strong></td>
+          <td><span class="swatch" style="background:#F6F9F8"></span><code>#F6F9F8</code></td>
+          <td><span class="swatch" style="background:#0F172A"></span><code>#0F172A</code></td>
+          <td><code>scaffoldBackgroundColor</code></td>
+        </tr>
+        <tr>
+          <td><strong>Card Surface</strong></td>
+          <td><span class="swatch" style="background:#FFFFFF"></span>M3 Light Surface</td>
+          <td><span class="swatch" style="background:#1E293B"></span>M3 Dark Surface</td>
+          <td><code>colorScheme.surface</code></td>
+        </tr>
+        <tr>
+          <td><strong>Card Border</strong></td>
+          <td>Subtle Gray Outline</td>
+          <td>Muted Slate Outline</td>
+          <td><code>colorScheme.outlineVariant</code></td>
+        </tr>
+        <tr>
+          <td><strong>Rx Warning Badge</strong></td>
+          <td><span class="swatch" style="background:#FFECB3"></span><code>amber.shade100</code> / <code>900</code></td>
+          <td><span class="swatch" style="background:#FFECB3"></span><code>amber.shade100</code> / <code>900</code></td>
+          <td>Prescription-only indicator</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Layout, Spacing &amp; Radius Tokens</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Value</th>
+          <th>Flutter Implementation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Screen Padding</strong></td>
+          <td>16px</td>
+          <td><code>EdgeInsets.all(16)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Card Inner Padding</strong></td>
+          <td>14px – 18px</td>
+          <td><code>EdgeInsets.all(14)</code> / <code>EdgeInsets.all(18)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Card Border Radius</strong></td>
+          <td>14px – 18px</td>
+          <td><code>BorderRadius.circular(16)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Button &amp; Input Radius</strong></td>
+          <td>10px – 14px</td>
+          <td><code>BorderRadius.circular(12)</code></td>
+        </tr>
+        <tr>
+          <td><strong>Card Elevation</strong></td>
+          <td>0 (Flat Clean Style)</td>
+          <td><code>elevation: 0</code> + <code>BorderSide</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 6. Data Models & Business Rules -->
+    <h2>6. Data Models &amp; Business Rules</h2>
+    <h3>Medicine Schema (<code>lib/models/medicine.dart</code>)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Description / Validation Rule</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>id</code></td>
+          <td><code>String</code></td>
+          <td>Unique identifier (e.g., <code>med_1</code>).</td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td><code>String</code></td>
+          <td>Display name &amp; dosage (e.g., <code>Paracetamol 500mg</code>).</td>
+        </tr>
+        <tr>
+          <td><code>category</code></td>
+          <td><code>String</code></td>
+          <td>Matches one of <code>AppConstants.categories</code>.</td>
+        </tr>
+        <tr>
+          <td><code>unit</code></td>
+          <td><code>String</code></td>
+          <td>Packaging description (e.g., <code>10 Tablets / Strip</code>).</td>
+        </tr>
+        <tr>
+          <td><code>price</code></td>
+          <td><code>int</code></td>
+          <td>Unit price in Myanmar Kyat (<code>Ks</code>).</td>
+        </tr>
+        <tr>
+          <td><code>stock</code></td>
+          <td><code>int</code></td>
+          <td>Available inventory; prevents adding beyond stock limit.</td>
+        </tr>
+        <tr>
+          <td><code>requiresPrescription</code></td>
+          <td><code>bool</code></td>
+          <td>If <code>true</code>, displays <code>Rx</code> badge and medical warning banner.</td>
+        </tr>
+        <tr>
+          <td><code>description</code></td>
+          <td><code>String</code></td>
+          <td>Usage summary displayed on <code>MedicineDetailScreen</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 7. Handover & QA Verification Checklist -->
+    <h2>7. Assignment Handover &amp; QA Verification Checklist</h2>
+    <ul class="checklist">
+      <li><input type="checkbox" checked> <strong>Clean Architecture Separation:</strong> Constants, Models, Services, Repositories, BLoC Logic, and UI Screens are strictly separated.</li>
+      <li><input type="checkbox" checked> <strong>Dart-Native Data Layer:</strong> <code>MedicineService</code> provides strongly typed <code>Medicine</code> objects without requiring external JSON asset configuration.</li>
+      <li><input type="checkbox" checked> <strong>Real-Time Search &amp; Filtering:</strong> Search input and horizontal category chips work together seamlessly.</li>
+      <li><input type="checkbox" checked> <strong>Stock-Safe Cart Logic:</strong> Add/increment buttons automatically disable when cart quantity reaches available stock.</li>
+      <li><input type="checkbox" checked> <strong>Light &amp; Dark Theme Toggle:</strong> AppBar icon switches between <code>ThemeMode.light</code> and <code>ThemeMode.dark</code> across all screens.</li>
+      <li><input type="checkbox" checked> <strong>Order Confirmation Flow:</strong> Checkout deducts stock, empties the cart, navigates back, and triggers a confirmation <code>SnackBar</code>.</li>
+    </ul>
+
+    <h3>Sample Component Specification (Flutter Clean Card Pattern)</h3>
+    <pre><code>// Component: Clean Medicine Card (Adaptive to Light &amp; Dark Mode)
+Card(
+  elevation: 0,
+  color: Theme.of(context).colorScheme.surface,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16),
+    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+  ),
+  child: Padding(
+    padding: const EdgeInsets.all(14),
+    child: /* Icon Container + Medicine Info + Rx Badge + Add CTA */,
+  ),
+);</code></pre>
+
+  </div>
+
+</body>
+</html>
