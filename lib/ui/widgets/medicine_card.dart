@@ -5,21 +5,21 @@ class MedicineCard extends StatelessWidget {
   final Medicine medicine;
   final int cartQuantity;
   final VoidCallback onTap;
-  final VoidCallback onAdd;
+  final VoidCallback? onAdd;
 
   const MedicineCard({
     super.key,
     required this.medicine,
     required this.cartQuantity,
     required this.onTap,
-    required this.onAdd,
+    this.onAdd,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final canAdd = medicine.stock > 0 && cartQuantity < medicine.stock;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isOutOfStock = medicine.stock <= 0;
+    final isMaxReached = cartQuantity >= medicine.stock;
 
     return Card(
       elevation: 0,
@@ -33,105 +33,64 @@ class MedicineCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.medication_rounded,
-                  color: colorScheme.onPrimaryContainer,
-                  size: 28,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 72,
+                  height: 72,
+                  child: medicine.imageUrl.isNotEmpty
+                      ? Image.network(
+                          medicine.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _fallbackIcon(colorScheme),
+                        )
+                      : _fallbackIcon(colorScheme),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            medicine.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        if (medicine.requiresPrescription)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Rx',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.amber.shade900,
-                              ),
-                            ),
-                          ),
-                      ],
+                    Text(
+                      medicine.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${medicine.category} • ${medicine.unit}',
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: TextStyle(
+                        fontSize: 12.5,
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${medicine.price} Ks',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            Text(
-                              'Stock: ${medicine.stock}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: canAdd ? onAdd : null,
-                          icon: const Icon(Icons.add, size: 16),
-                          label: Text(
-                            cartQuantity > 0 ? 'Add ($cartQuantity)' : 'Add',
+                        Text(
+                          '${medicine.price} Ks',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: colorScheme.onPrimary,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          isOutOfStock ? 'Out of stock' : 'Stock: ${medicine.stock}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isOutOfStock
+                                ? colorScheme.error
+                                : colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -139,10 +98,28 @@ class MedicineCard extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              FilledButton.tonal(
+                onPressed: (isOutOfStock || isMaxReached) ? null : onAdd,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(cartQuantity > 0 ? 'Add ($cartQuantity)' : 'Add'),
+              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _fallbackIcon(ColorScheme colorScheme) {
+    return Container(
+      color: colorScheme.primaryContainer,
+      child: Icon(Icons.cake_rounded, color: colorScheme.primary, size: 32),
     );
   }
 }

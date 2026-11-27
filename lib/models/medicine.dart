@@ -7,6 +7,7 @@ class Medicine {
   final int stock;
   final bool requiresPrescription;
   final String description;
+  final String imageUrl;
 
   const Medicine({
     required this.id,
@@ -17,18 +18,28 @@ class Medicine {
     required this.stock,
     required this.requiresPrescription,
     required this.description,
+    this.imageUrl = '',
   });
 
   factory Medicine.fromJson(Map<String, dynamic> json) {
+    final rawPrice = json['price'];
+    final parsedPrice = rawPrice is num ? rawPrice.round() : 5000;
+
+    final rawStock = json['stock'];
+    final parsedStock = rawStock is num ? rawStock.toInt() : 15;
+
     return Medicine(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      category: json['category'] as String,
-      unit: json['unit'] as String,
-      price: json['price'] as int,
-      stock: json['stock'] as int,
-      requiresPrescription: json['requiresPrescription'] as bool,
-      description: json['description'] as String,
+      id: (json['idMeal'] ?? json['id'] ?? '').toString(),
+      name: (json['strMeal'] ?? json['name'] ?? 'Cake').toString(),
+      category: (json['strCategory'] ?? json['category'] ?? 'Dessert').toString(),
+      unit: (json['unit'] ?? '1 Whole / Slice').toString(),
+      price: parsedPrice,
+      stock: parsedStock,
+      requiresPrescription: false,
+      description:
+          (json['strInstructions'] ?? json['description'] ?? 'Freshly baked cake.')
+              .toString(),
+      imageUrl: (json['strMealThumb'] ?? json['imageUrl'] ?? '').toString(),
     );
   }
 
@@ -42,6 +53,7 @@ class Medicine {
       'stock': stock,
       'requiresPrescription': requiresPrescription,
       'description': description,
+      'imageUrl': imageUrl,
     };
   }
 
@@ -55,6 +67,7 @@ class Medicine {
       stock: stock ?? this.stock,
       requiresPrescription: requiresPrescription,
       description: description,
+      imageUrl: imageUrl,
     );
   }
 }

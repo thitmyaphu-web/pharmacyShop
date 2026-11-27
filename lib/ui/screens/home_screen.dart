@@ -99,7 +99,7 @@ class HomeScreen extends StatelessWidget {
                 onChanged: (value) =>
                     context.read<PharmacyBloc>().add(SearchMedicines(value)),
                 decoration: InputDecoration(
-                  hintText: 'ဆေးအမည် သို့မဟုတ် အမျိုးအစား ရှာဖွေရန်...',
+                  hintText: 'cake  အမျိုးအစား ရှာဖွေရန်...',
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: colorScheme.surface,
@@ -115,32 +115,35 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            BlocBuilder<PharmacyBloc, PharmacyState>(
-              buildWhen: (prev, curr) =>
-                  prev.selectedCategory != curr.selectedCategory,
-              builder: (context, state) {
-                return SizedBox(
-                  height: 42,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: AppConstants.categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (context, index) {
-                      final category = AppConstants.categories[index];
-                      final isSelected = state.selectedCategory == category;
-                      return ChoiceChip(
-                        label: Text(category),
-                        selected: isSelected,
-                        onSelected: (_) => context
-                            .read<PharmacyBloc>()
-                            .add(SelectCategory(category)),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+  BlocBuilder<PharmacyBloc, PharmacyState>(
+  builder: (context, state) {
+    final categories = [
+      'All',
+      ...state.allMedicines.map((m) => m.category).toSet(),
+    ];
+
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = state.selectedCategory == category;
+          return ChoiceChip(
+            label: Text(category),
+            selected: isSelected,
+            onSelected: (_) => context
+                .read<PharmacyBloc>()
+                .add(SelectCategory(category)),
+          );
+        },
+      ),
+    );
+  },
+),
             const SizedBox(height: 10),
             Expanded(
               child: BlocBuilder<PharmacyBloc, PharmacyState>(
@@ -178,7 +181,7 @@ class HomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) =>
-                                  MedicineDetailScreen(medicineId: med.id),
+                                  MedicineDetailScreen(medicine: med, medicineId: med.id),
                             ),
                           );
                         },

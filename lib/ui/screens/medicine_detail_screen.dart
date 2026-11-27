@@ -4,117 +4,155 @@ import 'package:pharmacyshop/logic/bloc/pharmacy_bloc.dart';
 import 'package:pharmacyshop/logic/bloc/pharmacy_event.dart';
 import 'package:pharmacyshop/logic/bloc/pharmacy_state.dart';
 
+import '../../models/medicine.dart';
 
 class MedicineDetailScreen extends StatelessWidget {
-  final String medicineId;
+  final Medicine medicine;
 
-  const MedicineDetailScreen({super.key, required this.medicineId});
+  const MedicineDetailScreen({super.key, required this.medicine, required String medicineId});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return BlocBuilder<PharmacyBloc, PharmacyState>(
       builder: (context, state) {
-        final med = state.allMedicines.firstWhere(
-          (item) => item.id == medicineId,
+        final currentMed = state.allMedicines.firstWhere(
+          (m) => m.id == medicine.id,
+          orElse: () => medicine,
         );
-        final matching =
-            state.cartItems.where((c) => c.medicine.id == med.id).toList();
-        final cartQty = matching.isEmpty ? 0 : matching.first.quantity;
-        final canAdd = med.stock > 0 && cartQty < med.stock;
+        final cartItem = state.cartItems
+            .where((item) => item.medicine.id == currentMed.id)
+            .firstOrNull;
+        final cartQty = cartItem?.quantity ?? 0;
+        final canAdd = currentMed.stock > 0 && cartQty < currentMed.stock;
 
         return Scaffold(
-          appBar: AppBar(title: Text(med.name)),
-          body: Padding(
+          appBar: AppBar(title: const Text('Cake Details')),
+          body: ListView(
             padding: const EdgeInsets.all(16),
-            child: Card(
-              elevation: 0,
-              color: colorScheme.surface,
-              shape: RoundedRectangleBorder(
+            children: [
+              // Large Cake Banner Image
+              ClipRRect(
                 borderRadius: BorderRadius.circular(18),
-                side: BorderSide(color: colorScheme.outlineVariant),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      med.category,
-                      style: TextStyle(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      med.name,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${med.price} Ks • ${med.unit}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Available Stock: ${med.stock}',
-                      style: TextStyle(color: colorScheme.onSurfaceVariant),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      med.description,
-                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-                    ),
-                    if (med.requiresPrescription) ...[
-                      const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'ဤဆေးဝါးသည် ဆရာဝန် ညွှန်ကြားချက်ဖြင့်သာ အသုံးပြုသင့်သော ဆေးဖြစ်ပါသည်။',
-                          style: TextStyle(
-                            color: Colors.amber.shade900,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                child: SizedBox(
+                  height: 220,
+                  width: double.infinity,
+                  child: currentMed.imageUrl.isNotEmpty
+                      ? Image.network(
+                          currentMed.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: colorScheme.primaryContainer,
+                            child: Icon(
+                              Icons.cake_rounded,
+                              size: 64,
+                              color: colorScheme.primary,
+                            ),
                           ),
+                        )
+                      : Container(
+                          color: colorScheme.primaryContainer,
+                          child: Icon(
+                            Icons.cake_rounded,
+                            size: 64,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Info Card
+              Card(
+                elevation: 0,
+                color: colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentMed.name,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${currentMed.category} • ${currentMed.unit}',
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${currentMed.price} Ks',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          Chip(
+                            label: Text('Available: ${currentMed.stock}'),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 28),
+                      const Text(
+                        'Description & Recipe Notes',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        currentMed.description,
+                        style: TextStyle(
+                          height: 1.5,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: canAdd
-                            ? () =>
-                                context.read<PharmacyBloc>().add(AddToCart(med))
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          bottomNavigationBar: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: FilledButton.icon(
+                onPressed: canAdd
+                    ? () {
+                        context.read<PharmacyBloc>().add(AddToCart(currentMed));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Added ${currentMed.name} to cart'),
+                            duration: const Duration(seconds: 1),
                           ),
-                        ),
-                        child: Text(
-                          cartQty > 0
-                              ? 'Add to Cart ($cartQty in cart)'
-                              : 'Add to Cart',
-                        ),
-                      ),
-                    ),
-                  ],
+                        );
+                      }
+                    : null,
+                icon: const Icon(Icons.shopping_bag_outlined),
+                label: Text(
+                  cartQty > 0
+                      ? 'Add More to Cart ($cartQty in cart)'
+                      : 'Add to Cart',
+                ),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ),

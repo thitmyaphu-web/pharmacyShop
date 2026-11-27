@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppConstants {
-  static const String appName = 'Medi Shop';
-  static const Color primaryColor = Color(0xFF0E7C7B);
+  static const String appName = 'Chocochip Cake Shop';
+  static const Color primaryColor = Color.fromARGB(255, 26, 56, 99);
 
   static const List<String> categories = [
     'All',
@@ -16,12 +16,12 @@ class AppConstants {
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: primaryColor,
+      seedColor: const Color.fromARGB(255, 120, 167, 233),
       brightness: Brightness.light,
     ),
-    scaffoldBackgroundColor: const Color(0xFFF6F9F8),
+    scaffoldBackgroundColor: const Color.fromARGB(208, 18, 109, 175),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFFF6F9F8),
+      backgroundColor: Color.fromARGB(255, 109, 94, 224),
       elevation: 0,
       centerTitle: false,
     ),
@@ -36,7 +36,7 @@ class AppConstants {
     ),
     scaffoldBackgroundColor: const Color(0xFF0F172A),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF0F172A),
+      backgroundColor: Color.fromARGB(255, 31, 45, 78),
       elevation: 0,
       centerTitle: false,
     ),

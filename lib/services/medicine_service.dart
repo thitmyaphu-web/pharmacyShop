@@ -1,50 +1,38 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/medicine.dart';
 
 class MedicineService {
-  static const _sampleMedicines = [
-    Medicine(
-      id: 'med_1',
-      name: 'Paracetamol 500mg',
-      category: 'Fever & Pain',
-      unit: '10 Tablets / Strip',
-      price: 1500,
-      stock: 25,
-      requiresPrescription: false,
-      description: 'အဖျားကျခြင်းနှင့် အကိုက်အခဲ သက်သာစေရန် အသုံးပြုသော ဆေးပြား။',
-    ),
-    Medicine(
-      id: 'med_2',
-      name: 'Vitamin C 1000mg',
-      category: 'Vitamins',
-      unit: '30 Tablets / Bottle',
-      price: 8500,
-      stock: 12,
-      requiresPrescription: false,
-      description: 'ကိုယ်ခံအား ထောက်ပံ့ရန် ဗီတာမင် စီ ဖြည့်စွက်ဆေး။',
-    ),
-    Medicine(
-      id: 'med_3',
-      name: 'Amoxicillin 500mg',
-      category: 'Antibiotics',
-      unit: '10 Capsules / Strip',
-      price: 4500,
-      stock: 8,
-      requiresPrescription: true,
-      description: 'ဆရာဝန် ညွှန်ကြားချက်ဖြင့်သာ အသုံးပြုသင့်သော ပဋိဇီဝဆေး။',
-    ),
-    Medicine(
-      id: 'med_4',
-      name: 'Cetirizine 10mg',
-      category: 'Allergy',
-      unit: '10 Tablets / Strip',
-      price: 2000,
-      stock: 18,
-      requiresPrescription: false,
-      description: 'ဓာတ်မတည့်ခြင်းနှင့် နှာစေးယားယံခြင်းအတွက် ဆေးပြား။',
-    ),
-  ];
+  static const String _apiUrl =
+      'https://www.themealdb.com/api/json/v1/1/search.php?s=cake';
 
   Future<List<Medicine>> fetchMedicines() async {
-    return _sampleMedicines;
+    final response = await http.get(Uri.parse(_apiUrl));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load cakes (${response.statusCode})');
+    }
+
+    final Map<String, dynamic> decoded =
+        jsonDecode(response.body) as Map<String, dynamic>;
+    final List<dynamic> meals = (decoded['meals'] as List<dynamic>?) ?? [];
+
+    return meals.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value as Map<String, dynamic>;
+
+      return Medicine(
+        id: (item['idMeal'] ?? index).toString(),
+        name: (item['strMeal'] ?? 'Cake').toString(),
+        category: (item['strArea'] ?? item['strCategory'] ?? 'Dessert').toString(),
+        unit: '1 Whole / Slice',
+        price: 5000 + (index * 1500),
+        stock: 15,
+        requiresPrescription: false,
+        description:
+            (item['strInstructions'] ?? 'Freshly baked cake.').toString(),
+        imageUrl: (item['strMealThumb'] ?? '').toString(),
+      );
+    }).toList();
   }
 }
